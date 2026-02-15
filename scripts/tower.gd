@@ -3,6 +3,7 @@ extends Node3D
 @export var tower_id := 1
 @export var activation_distance := 5.0
 @export var interaction_key := KEY_E
+@export var auto_position_on_terrain := true
 
 @onready var activation_light: OmniLight3D = $ActivationLight
 @onready var prompt_label: Label3D = $PromptLabel
@@ -16,6 +17,11 @@ func _ready() -> void:
 	activation_light.visible = false
 	prompt_label.visible = false
 	
+	# Position on terrain if enabled
+	if auto_position_on_terrain:
+		await get_tree().create_timer(0.5).timeout # Wait for terrain generation
+		_position_on_terrain()
+	
 	# Connect to game manager
 	var game_manager = get_node("/root/Main/GameManager")
 	if game_manager:
@@ -25,6 +31,13 @@ func _ready() -> void:
 	puzzle_ui = get_node("/root/Main/UI/PuzzleUI")
 	if puzzle_ui:
 		puzzle_ui.puzzle_completed.connect(_on_puzzle_completed)
+
+func _position_on_terrain() -> void:
+	var terrain = get_node_or_null("/root/Main/TerrainGenerator")
+	if terrain and terrain.has_method("get_terrain_height_at"):
+		var current_pos = global_position
+		var terrain_height = terrain.get_terrain_height_at(current_pos.x, current_pos.z)
+		global_position.y = terrain_height + 4.0 # Tower height offset
 
 func _process(_delta: float) -> void:
 	if is_activated:

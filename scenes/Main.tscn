@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://scripts/ui_manager.gd" id="4_ui"]
 [ext_resource type="Script" path="res://scripts/tower.gd" id="5_tower"]
 [ext_resource type="Script" path="res://scripts/puzzle_ui.gd" id="6_puzzle"]
+[ext_resource type="Script" path="res://scripts/audio_controller.gd" id="7_audio"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_dark"]
 sky_top_color = Color(0.08, 0.1, 0.15, 1)
@@ -216,7 +217,7 @@ corner_radius_bottom_left = 4
 script = ExtResource("3_game")
 
 [node name="AudioController" type="Node" parent="."]
-script = preload("res://scripts/audio_controller.gd")
+script = ExtResource("7_audio")
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="AudioController"]
 
@@ -234,87 +235,12 @@ directional_shadow_mode = 0
 directional_shadow_fade_start = 1.0
 directional_shadow_max_distance = 200.0
 
-[node name="Ground" type="MeshInstance3D" parent="."]
-mesh = SubResource("PlaneMesh_ground")
-material_override = SubResource("StandardMaterial3D_snow")
-
-[node name="GroundBody" type="StaticBody3D" parent="."]
-
-[node name="GroundCollision" type="CollisionShape3D" parent="GroundBody"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
-shape = SubResource("BoxShape3D_ground")
-
-[node name="Terrain" type="Node3D" parent="."]
-
-[node name="Dune1" type="MeshInstance3D" parent="Terrain"]
-transform = Transform3D(12, 0, 0, 0, 3, 0, 0, 0, 8, 45, 1.5, 25)
-mesh = SubResource("SphereMesh_dune")
-material_override = SubResource("StandardMaterial3D_snow")
-
-[node name="Dune2" type="MeshInstance3D" parent="Terrain"]
-transform = Transform3D(15, 0, 0, 0, 4, 0, 0, 0, 10, -60, 2, -40)
-mesh = SubResource("SphereMesh_dune")
-material_override = SubResource("StandardMaterial3D_snow")
-
-[node name="Dune3" type="MeshInstance3D" parent="Terrain"]
-transform = Transform3D(10, 0, 0, 0, 2.5, 0, 0, 0, 12, 70, 1.2, -55)
-mesh = SubResource("SphereMesh_dune")
-material_override = SubResource("StandardMaterial3D_snow")
-
-[node name="Dune4" type="MeshInstance3D" parent="Terrain"]
-transform = Transform3D(8, 0, 0, 0, 3.5, 0, 0, 0, 7, -80, 1.8, 60)
-mesh = SubResource("SphereMesh_dune")
-material_override = SubResource("StandardMaterial3D_snow")
-
-[node name="Dune5" type="MeshInstance3D" parent="Terrain"]
-transform = Transform3D(14, 0, 0, 0, 3, 0, 0, 0, 9, 20, 1.5, -70)
-mesh = SubResource("SphereMesh_dune")
-material_override = SubResource("StandardMaterial3D_snow")
-
-[node name="Dune6" type="MeshInstance3D" parent="Terrain"]
-transform = Transform3D(11, 0, 0, 0, 2.8, 0, 0, 0, 11, -30, 1.4, 45)
-mesh = SubResource("SphereMesh_dune")
-material_override = SubResource("StandardMaterial3D_snow")
-
-[node name="Rock1" type="MeshInstance3D" parent="Terrain"]
-transform = Transform3D(2.5, 0, 0.5, 0, 3, 0, -0.5, 0, 2.5, 15, 1.5, 8)
-mesh = SubResource("SphereMesh_rock")
-material_override = SubResource("StandardMaterial3D_rock")
-
-[node name="Rock2" type="MeshInstance3D" parent="Terrain"]
-transform = Transform3D(1.8, 0, 0.3, 0, 2.2, 0, -0.3, 0, 1.8, -25, 1.1, -15)
-mesh = SubResource("SphereMesh_rock")
-material_override = SubResource("StandardMaterial3D_rock")
-
-[node name="Rock3" type="MeshInstance3D" parent="Terrain"]
-transform = Transform3D(3, 0, -0.8, 0, 3.5, 0, 0.8, 0, 3, 40, 1.8, -30)
-mesh = SubResource("SphereMesh_rock")
-material_override = SubResource("StandardMaterial3D_rock")
-
-[node name="Rock4" type="MeshInstance3D" parent="Terrain"]
-transform = Transform3D(1.5, 0, 0.2, 0, 1.8, 0, -0.2, 0, 1.5, -50, 0.9, 20)
-mesh = SubResource("SphereMesh_rock")
-material_override = SubResource("StandardMaterial3D_rock")
-
-[node name="Rock5" type="MeshInstance3D" parent="Terrain"]
-transform = Transform3D(2, 0, -0.4, 0, 2.5, 0, 0.4, 0, 2, 55, 1.3, 35)
-mesh = SubResource("SphereMesh_rock")
-material_override = SubResource("StandardMaterial3D_rock")
-
-[node name="Rock6" type="MeshInstance3D" parent="Terrain"]
-transform = Transform3D(2.8, 0, 0.6, 0, 3.2, 0, -0.6, 0, 2.8, -35, 1.6, -45)
-mesh = SubResource("SphereMesh_rock")
-material_override = SubResource("StandardMaterial3D_rock")
-
-[node name="Rock7" type="MeshInstance3D" parent="Terrain"]
-transform = Transform3D(1.2, 0, 0, 0, 1.5, 0, 0, 0, 1.2, 8, 0.75, -20)
-mesh = SubResource("SphereMesh_rock")
-material_override = SubResource("StandardMaterial3D_rock")
-
-[node name="Rock8" type="MeshInstance3D" parent="Terrain"]
-transform = Transform3D(2.2, 0, -0.5, 0, 2.8, 0, 0.5, 0, 2.2, -18, 1.4, 28)
-mesh = SubResource("SphereMesh_rock")
-material_override = SubResource("StandardMaterial3D_rock")
+[node name="TerrainGenerator" type="Node3D" parent="."]
+script = preload("res://scripts/terrain_generator.gd")
+terrain_size = 100
+terrain_height = 15.0
+tree_density = 0.03
+building_count = 6
 
 [node name="Snow" type="GPUParticles3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 15, 0)
