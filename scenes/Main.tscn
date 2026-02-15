@@ -1,41 +1,109 @@
-[gd_scene load_steps=13 format=3 uid="uid://b0h83qv8qhx0j"]
+[gd_scene load_steps=38 format=3 uid="uid://b0h83qv8qhx0j"]
 
 [ext_resource type="Script" path="res://scripts/first_person_controller.gd" id="1_controller"]
-
-[sub_resource type="Environment" id="Environment_dark_snow"]
-background_mode = 2
-sky = SubResource("Sky_dark")
-fog_enabled = true
-fog_density = 0.035
-fog_light_color = Color(0.36, 0.38, 0.43, 1)
-fog_aerial_perspective = 0.85
-volumetric_fog_enabled = true
-volumetric_fog_density = 0.08
-volumetric_fog_albedo = Color(0.69, 0.73, 0.8, 1)
-ambient_light_source = 3
-ambient_light_color = Color(0.14, 0.16, 0.2, 1)
-ambient_light_energy = 1.4
+[ext_resource type="Script" path="res://scripts/weather_controller.gd" id="2_weather"]
+[ext_resource type="Script" path="res://scripts/game_manager.gd" id="3_game"]
+[ext_resource type="Script" path="res://scripts/ui_manager.gd" id="4_ui"]
+[ext_resource type="Script" path="res://scripts/tower.gd" id="5_tower"]
+[ext_resource type="Script" path="res://scripts/puzzle_ui.gd" id="6_puzzle"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_dark"]
-sky_top_color = Color(0.02, 0.02, 0.03, 1)
-sky_horizon_color = Color(0.05, 0.06, 0.08, 1)
-ground_bottom_color = Color(0.03, 0.03, 0.04, 1)
-ground_horizon_color = Color(0.09, 0.1, 0.11, 1)
-energy_multiplier = 0.25
+sky_top_color = Color(0.08, 0.1, 0.15, 1)
+sky_horizon_color = Color(0.3, 0.35, 0.4, 1)
+ground_bottom_color = Color(0.05, 0.05, 0.08, 1)
+ground_horizon_color = Color(0.5, 0.6, 0.7, 1)
+sun_angle_max = 30.0
+sun_curve = 0.15
 
 [sub_resource type="Sky" id="Sky_dark"]
 sky_material = SubResource("ProceduralSkyMaterial_dark")
 
+[sub_resource type="Environment" id="Environment_dark_snow"]
+background_mode = 2
+sky = SubResource("Sky_dark")
+tonemap_mode = 3
+ssr_enabled = true
+ssao_enabled = true
+ssil_enabled = true
+glow_enabled = true
+glow_normalized = true
+glow_intensity = 1.2
+glow_bloom = 0.3
+fog_enabled = true
+fog_light_color = Color(0.4, 0.45, 0.5, 1)
+fog_sun_scatter = 0.3
+fog_density = 0.015
+fog_sky_affect = 0.9
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.04
+volumetric_fog_albedo = Color(0.5, 0.55, 0.6, 1)
+volumetric_fog_emission_energy = 0.0
+volumetric_fog_length = 64.0
+adjustment_enabled = true
+adjustment_contrast = 1.15
+adjustment_saturation = 0.85
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_terrain"]
+noise_type = 3
+frequency = 0.02
+fractal_type = 2
+fractal_octaves = 5
+fractal_lacunarity = 2.5
+fractal_gain = 0.6
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_heightmap"]
+width = 512
+height = 512
+seamless = true
+noise = SubResource("FastNoiseLite_terrain")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_snow"]
+noise_type = 3
+frequency = 0.05
+fractal_type = 2
+fractal_octaves = 4
+cellular_distance_function = 1
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_snow_normal"]
+seamless = true
+as_normal_map = true
+bump_strength = 8.0
+noise = SubResource("FastNoiseLite_snow")
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_snow_roughness"]
+seamless = true
+noise = SubResource("FastNoiseLite_snow")
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_snow"]
-albedo_color = Color(0.92, 0.95, 1, 1)
-roughness = 0.95
-metallic = 0.02
+albedo_color = Color(0.85, 0.88, 0.92, 1)
+roughness = 1.0
+roughness_texture = SubResource("NoiseTexture2D_snow_roughness")
+normal_enabled = true
+normal_texture = SubResource("NoiseTexture2D_snow_normal")
+subsurf_scatter_enabled = true
+subsurf_scatter_strength = 0.75
+subsurf_scatter_skin_mode = true
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
-size = Vector2(220, 220)
+size = Vector2(500, 500)
+subdivide_width = 64
+subdivide_depth = 64
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
-size = Vector3(220, 1, 220)
+size = Vector3(500, 1, 500)
+
+[sub_resource type="SphereMesh" id="SphereMesh_rock"]
+radial_segments = 8
+rings = 6
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rock"]
+albedo_color = Color(0.25, 0.28, 0.32, 1)
+roughness = 0.95
+normal_enabled = true
+
+[sub_resource type="SphereMesh" id="SphereMesh_dune"]
+radial_segments = 16
+rings = 8
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
 radius = 0.34
@@ -43,35 +111,128 @@ height = 1.2
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_snow"]
 emission_shape = 3
-emission_box_extents = Vector3(70, 20, 70)
-gravity = Vector3(0, -2.1, 0)
-initial_velocity_min = 3.2
-initial_velocity_max = 4.4
-direction = Vector3(0, -1, 0)
-spread = 12.0
-scale_min = 0.03
-scale_max = 0.08
-color = Color(0.92, 0.95, 1, 0.85)
+emission_box_extents = Vector3(50, 20, 50)
+direction = Vector3(0.3, -1, 0.15)
+spread = 25.0
+initial_velocity_min = 2.5
+initial_velocity_max = 5.5
+gravity = Vector3(0, -1.2, 0)
+scale_min = 0.05
+scale_max = 0.12
+turbulence_enabled = true
+turbulence_noise_strength = 3.0
+turbulence_noise_scale = 4.0
+collision_mode = 1
+collision_friction = 0.0
+collision_bounce = 0.0
 
-[sub_resource type="QuadMesh" id="QuadMesh_footprint"]
-size = Vector2(0.22, 0.42)
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_flake"]
+shading_mode = 0
+albedo_color = Color(1.5, 1.5, 1.5, 1)
+billboard_mode = 3
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_footprint"]
-albedo_color = Color(0.55, 0.58, 0.62, 0.42)
+[sub_resource type="QuadMesh" id="QuadMesh_flake"]
+material = SubResource("StandardMaterial3D_flake")
+size = Vector2(0.05, 0.05)
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_clouds"]
+emission_shape = 3
+emission_box_extents = Vector3(150, 5, 150)
+direction = Vector3(1, 0, 0.2)
+spread = 5.0
+initial_velocity_min = 0.5
+initial_velocity_max = 2.0
+gravity = Vector3(0, 0, 0)
+scale_min = 8.0
+scale_max = 15.0
+turbulence_enabled = true
+turbulence_noise_strength = 0.5
+turbulence_noise_scale = 2.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cloud"]
 transparency = 1
 shading_mode = 0
+albedo_color = Color(0.2, 0.22, 0.25, 0.4)
+billboard_mode = 3
+
+[sub_resource type="QuadMesh" id="QuadMesh_cloud"]
+material = SubResource("StandardMaterial3D_cloud")
+size = Vector2(12.0, 8.0)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tower"]
+size = Vector3(2, 8, 2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tower"]
+albedo_color = Color(0.2, 0.25, 0.3, 1)
+metallic = 0.8
+roughness = 0.3
+emission_enabled = true
+emission = Color(0.1, 0.3, 0.5, 1)
+emission_energy_multiplier = 0.5
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_tower_base"]
+top_radius = 1.5
+bottom_radius = 1.8
+height = 1.0
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_tower_area"]
+radius = 5.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_structure"]
+size = Vector3(80, 15, 40)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_structure"]
+albedo_color = Color(0.15, 0.15, 0.18, 1)
+metallic = 0.9
+roughness = 0.4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.1, 0.12, 0.15, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.5, 0.7, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+bg_color = Color(0.2, 0.25, 0.3, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.4, 0.6, 0.8, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
 
 [node name="Main" type="Node3D"]
+
+[node name="GameManager" type="Node" parent="."]
+script = ExtResource("3_game")
+
+[node name="AudioController" type="Node" parent="."]
+script = preload("res://scripts/audio_controller.gd")
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="AudioController"]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_dark_snow")
 
-[node name="MoonLight" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.939693, 0, -0.34202, -0.17101, 0.866025, -0.469846, 0.296198, 0.5, 0.813798, 0, 14, 0)
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 0, 0, 0)
+light_color = Color(0.65, 0.7, 0.8, 1)
 light_energy = 0.8
-light_color = Color(0.61, 0.69, 0.85, 1)
+light_volumetric_fog_energy = 1.2
 shadow_enabled = true
-shadow_blur = 1.4
+shadow_bias = 0.05
+directional_shadow_mode = 0
+directional_shadow_fade_start = 1.0
+directional_shadow_max_distance = 200.0
 
 [node name="Ground" type="MeshInstance3D" parent="."]
 mesh = SubResource("PlaneMesh_ground")
@@ -83,30 +244,375 @@ material_override = SubResource("StandardMaterial3D_snow")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 shape = SubResource("BoxShape3D_ground")
 
+[node name="Terrain" type="Node3D" parent="."]
+
+[node name="Dune1" type="MeshInstance3D" parent="Terrain"]
+transform = Transform3D(12, 0, 0, 0, 3, 0, 0, 0, 8, 45, 1.5, 25)
+mesh = SubResource("SphereMesh_dune")
+material_override = SubResource("StandardMaterial3D_snow")
+
+[node name="Dune2" type="MeshInstance3D" parent="Terrain"]
+transform = Transform3D(15, 0, 0, 0, 4, 0, 0, 0, 10, -60, 2, -40)
+mesh = SubResource("SphereMesh_dune")
+material_override = SubResource("StandardMaterial3D_snow")
+
+[node name="Dune3" type="MeshInstance3D" parent="Terrain"]
+transform = Transform3D(10, 0, 0, 0, 2.5, 0, 0, 0, 12, 70, 1.2, -55)
+mesh = SubResource("SphereMesh_dune")
+material_override = SubResource("StandardMaterial3D_snow")
+
+[node name="Dune4" type="MeshInstance3D" parent="Terrain"]
+transform = Transform3D(8, 0, 0, 0, 3.5, 0, 0, 0, 7, -80, 1.8, 60)
+mesh = SubResource("SphereMesh_dune")
+material_override = SubResource("StandardMaterial3D_snow")
+
+[node name="Dune5" type="MeshInstance3D" parent="Terrain"]
+transform = Transform3D(14, 0, 0, 0, 3, 0, 0, 0, 9, 20, 1.5, -70)
+mesh = SubResource("SphereMesh_dune")
+material_override = SubResource("StandardMaterial3D_snow")
+
+[node name="Dune6" type="MeshInstance3D" parent="Terrain"]
+transform = Transform3D(11, 0, 0, 0, 2.8, 0, 0, 0, 11, -30, 1.4, 45)
+mesh = SubResource("SphereMesh_dune")
+material_override = SubResource("StandardMaterial3D_snow")
+
+[node name="Rock1" type="MeshInstance3D" parent="Terrain"]
+transform = Transform3D(2.5, 0, 0.5, 0, 3, 0, -0.5, 0, 2.5, 15, 1.5, 8)
+mesh = SubResource("SphereMesh_rock")
+material_override = SubResource("StandardMaterial3D_rock")
+
+[node name="Rock2" type="MeshInstance3D" parent="Terrain"]
+transform = Transform3D(1.8, 0, 0.3, 0, 2.2, 0, -0.3, 0, 1.8, -25, 1.1, -15)
+mesh = SubResource("SphereMesh_rock")
+material_override = SubResource("StandardMaterial3D_rock")
+
+[node name="Rock3" type="MeshInstance3D" parent="Terrain"]
+transform = Transform3D(3, 0, -0.8, 0, 3.5, 0, 0.8, 0, 3, 40, 1.8, -30)
+mesh = SubResource("SphereMesh_rock")
+material_override = SubResource("StandardMaterial3D_rock")
+
+[node name="Rock4" type="MeshInstance3D" parent="Terrain"]
+transform = Transform3D(1.5, 0, 0.2, 0, 1.8, 0, -0.2, 0, 1.5, -50, 0.9, 20)
+mesh = SubResource("SphereMesh_rock")
+material_override = SubResource("StandardMaterial3D_rock")
+
+[node name="Rock5" type="MeshInstance3D" parent="Terrain"]
+transform = Transform3D(2, 0, -0.4, 0, 2.5, 0, 0.4, 0, 2, 55, 1.3, 35)
+mesh = SubResource("SphereMesh_rock")
+material_override = SubResource("StandardMaterial3D_rock")
+
+[node name="Rock6" type="MeshInstance3D" parent="Terrain"]
+transform = Transform3D(2.8, 0, 0.6, 0, 3.2, 0, -0.6, 0, 2.8, -35, 1.6, -45)
+mesh = SubResource("SphereMesh_rock")
+material_override = SubResource("StandardMaterial3D_rock")
+
+[node name="Rock7" type="MeshInstance3D" parent="Terrain"]
+transform = Transform3D(1.2, 0, 0, 0, 1.5, 0, 0, 0, 1.2, 8, 0.75, -20)
+mesh = SubResource("SphereMesh_rock")
+material_override = SubResource("StandardMaterial3D_rock")
+
+[node name="Rock8" type="MeshInstance3D" parent="Terrain"]
+transform = Transform3D(2.2, 0, -0.5, 0, 2.8, 0, 0.5, 0, 2.2, -18, 1.4, 28)
+mesh = SubResource("SphereMesh_rock")
+material_override = SubResource("StandardMaterial3D_rock")
+
 [node name="Snow" type="GPUParticles3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 18, 0)
-amount = 7000
-lifetime = 12.0
-visibility_aabb = AABB(-80, -50, -80, 160, 120, 160)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 15, 0)
+amount = 15000
+lifetime = 10.0
+preprocess = 5.0
+visibility_aabb = AABB(-60, -20, -60, 120, 40, 120)
 process_material = SubResource("ParticleProcessMaterial_snow")
-draw_pass_1 = SubResource("QuadMesh_footprint")
-material_override = SubResource("StandardMaterial3D_footprint")
-local_coords = false
-emitting = true
+draw_pass_1 = SubResource("QuadMesh_flake")
+
+[node name="Clouds" type="GPUParticles3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 35, 0)
+amount = 200
+lifetime = 120.0
+preprocess = 60.0
+visibility_aabb = AABB(-200, -10, -200, 400, 20, 400)
+process_material = SubResource("ParticleProcessMaterial_clouds")
+draw_pass_1 = SubResource("QuadMesh_cloud")
+
+[node name="WeatherController" type="Node3D" parent="."]
+script = ExtResource("2_weather")
+
+[node name="LightningLight" type="OmniLight3D" parent="WeatherController"]
+light_color = Color(0.8, 0.85, 1, 1)
+light_energy = 50.0
+omni_range = 100.0
+omni_attenuation = 2.0
+
+[node name="BuriedStructure" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25, 7, -60)
+visible = false
+mesh = SubResource("BoxMesh_structure")
+material_override = SubResource("StandardMaterial3D_structure")
+
+[node name="Tower1" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 4, 0)
+script = ExtResource("5_tower")
+tower_id = 1
+
+[node name="TowerMesh" type="MeshInstance3D" parent="Tower1"]
+mesh = SubResource("BoxMesh_tower")
+material_override = SubResource("StandardMaterial3D_tower")
+
+[node name="TowerBase" type="MeshInstance3D" parent="Tower1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -3.5, 0)
+mesh = SubResource("CylinderMesh_tower_base")
+material_override = SubResource("StandardMaterial3D_tower")
+
+[node name="ActivationLight" type="OmniLight3D" parent="Tower1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
+light_color = Color(0, 1, 0.5, 1)
+light_energy = 3.0
+omni_range = 15.0
+
+[node name="PromptLabel" type="Label3D" parent="Tower1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6, 0)
+billboard = 1
+text = "[E] Access Tower Panel"
+font_size = 32
+
+[node name="Area3D" type="Area3D" parent="Tower1"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Tower1/Area3D"]
+shape = SubResource("SphereShape3D_tower_area")
+
+[node name="Tower2" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 4, 35)
+script = ExtResource("5_tower")
+tower_id = 2
+
+[node name="TowerMesh" type="MeshInstance3D" parent="Tower2"]
+mesh = SubResource("BoxMesh_tower")
+material_override = SubResource("StandardMaterial3D_tower")
+
+[node name="TowerBase" type="MeshInstance3D" parent="Tower2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -3.5, 0)
+mesh = SubResource("CylinderMesh_tower_base")
+material_override = SubResource("StandardMaterial3D_tower")
+
+[node name="ActivationLight" type="OmniLight3D" parent="Tower2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
+light_color = Color(0, 1, 0.5, 1)
+light_energy = 3.0
+omni_range = 15.0
+
+[node name="PromptLabel" type="Label3D" parent="Tower2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6, 0)
+billboard = 1
+text = "[E] Access Tower Panel"
+font_size = 32
+
+[node name="Area3D" type="Area3D" parent="Tower2"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Tower2/Area3D"]
+shape = SubResource("SphereShape3D_tower_area")
+
+[node name="Tower3" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 4, -50)
+script = ExtResource("5_tower")
+tower_id = 3
+
+[node name="TowerMesh" type="MeshInstance3D" parent="Tower3"]
+mesh = SubResource("BoxMesh_tower")
+material_override = SubResource("StandardMaterial3D_tower")
+
+[node name="TowerBase" type="MeshInstance3D" parent="Tower3"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -3.5, 0)
+mesh = SubResource("CylinderMesh_tower_base")
+material_override = SubResource("StandardMaterial3D_tower")
+
+[node name="ActivationLight" type="OmniLight3D" parent="Tower3"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
+light_color = Color(0, 1, 0.5, 1)
+light_energy = 3.0
+omni_range = 15.0
+
+[node name="PromptLabel" type="Label3D" parent="Tower3"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6, 0)
+billboard = 1
+text = "[E] Access Tower Panel"
+font_size = 32
+
+[node name="Area3D" type="Area3D" parent="Tower3"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Tower3/Area3D"]
+shape = SubResource("SphereShape3D_tower_area")
+
+[node name="Tower4" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35, 4, -45)
+script = ExtResource("5_tower")
+tower_id = 4
+
+[node name="TowerMesh" type="MeshInstance3D" parent="Tower4"]
+mesh = SubResource("BoxMesh_tower")
+material_override = SubResource("StandardMaterial3D_tower")
+
+[node name="TowerBase" type="MeshInstance3D" parent="Tower4"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -3.5, 0)
+mesh = SubResource("CylinderMesh_tower_base")
+material_override = SubResource("StandardMaterial3D_tower")
+
+[node name="ActivationLight" type="OmniLight3D" parent="Tower4"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
+light_color = Color(0, 1, 0.5, 1)
+light_energy = 3.0
+omni_range = 15.0
+
+[node name="PromptLabel" type="Label3D" parent="Tower4"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6, 0)
+billboard = 1
+text = "[E] Access Tower Panel"
+font_size = 32
+
+[node name="Area3D" type="Area3D" parent="Tower4"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Tower4/Area3D"]
+shape = SubResource("SphereShape3D_tower_area")
 
 [node name="Player" type="CharacterBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.4, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0, 0)
 script = ExtResource("1_controller")
-footprint_mesh = SubResource("QuadMesh_footprint")
-footprint_material = SubResource("StandardMaterial3D_footprint")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
 shape = SubResource("CapsuleShape3D_player")
 
 [node name="Head" type="Node3D" parent="Player"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.58, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
 
 [node name="Camera3D" type="Camera3D" parent="Player/Head"]
 current = true
-near = 0.03
-fov = 80.0
+fov = 85.0
+
+[node name="UI" type="CanvasLayer" parent="."]
+script = ExtResource("4_ui")
+
+[node name="ObjectiveLabel" type="Label" parent="UI"]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 500.0
+offset_bottom = 60.0
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "Locate Tower 1"
+
+[node name="StoryPanel" type="Panel" parent="UI"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -150.0
+offset_right = 300.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="UI/StoryPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="StoryLabel" type="Label" parent="UI/StoryPanel/MarginContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "Story text goes here"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="FadeRect" type="ColorRect" parent="UI"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="PuzzleUI" type="Control" parent="UI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("6_puzzle")
+
+[node name="PuzzlePanel" type="Panel" parent="UI/PuzzleUI"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -200.0
+offset_right = 250.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="TitleLabel" type="Label" parent="UI/PuzzleUI/PuzzlePanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 40.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "PUZZLE TITLE"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PuzzleContainer" type="Control" parent="UI/PuzzleUI/PuzzlePanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -120.0
+offset_right = 200.0
+offset_bottom = 120.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CloseButton" type="Button" parent="UI/PuzzleUI/PuzzlePanel"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -80.0
+offset_top = -40.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+text = "Close"
+
+[connection signal="body_entered" from="Tower1/Area3D" to="Tower1" method="_on_body_entered"]
+[connection signal="body_exited" from="Tower1/Area3D" to="Tower1" method="_on_body_exited"]
+[connection signal="body_entered" from="Tower2/Area3D" to="Tower2" method="_on_body_entered"]
+[connection signal="body_exited" from="Tower2/Area3D" to="Tower2" method="_on_body_exited"]
+[connection signal="body_entered" from="Tower3/Area3D" to="Tower3" method="_on_body_entered"]
+[connection signal="body_exited" from="Tower3/Area3D" to="Tower3" method="_on_body_exited"]
+[connection signal="body_entered" from="Tower4/Area3D" to="Tower4" method="_on_body_entered"]
+[connection signal="body_exited" from="Tower4/Area3D" to="Tower4" method="_on_body_exited"]

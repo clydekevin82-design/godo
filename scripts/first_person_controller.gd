@@ -5,19 +5,12 @@ extends CharacterBody3D
 @export var sprint_speed := 7.2
 @export var jump_velocity := 4.8
 @export var gravity := 14.0
-@export var footprint_interval := 0.24
-@export var footprint_mesh: Mesh
-@export var footprint_material: Material
-@export var max_footprints := 180
 
 @onready var head: Node3D = $Head
 
-var _footprint_timer := 0.0
-var _last_left := false
-var _footprints: Array[Node3D] = []
-
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	add_to_group("player")
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
@@ -42,35 +35,8 @@ func _physics_process(delta: float) -> void:
 	velocity.z = move_dir.z * speed
 
 	move_and_slide()
-
-	_track_footprints(delta, move_dir)
-
-func _track_footprints(delta: float, move_dir: Vector3) -> void:
-	if not is_on_floor() or move_dir.length() < 0.15:
-		_footprint_timer = footprint_interval
-		return
-
-	_footprint_timer -= delta
-	if _footprint_timer > 0.0:
-		return
-
-	_footprint_timer = footprint_interval
-	var side := 0.16 if _last_left else -0.16
-	_last_left = not _last_left
-
-	var footprint := MeshInstance3D.new()
-	footprint.mesh = footprint_mesh
-	if footprint_material:
-		footprint.material_override = footprint_material
-
-	var local_offset := Vector3(side, -0.79, 0)
-	var base_position := global_transform.origin + global_basis * local_offset
-	footprint.global_position = Vector3(base_position.x, 0.02, base_position.z)
-	footprint.rotate_y(rotation.y + randf_range(-0.12, 0.12))
-	get_tree().current_scene.add_child(footprint)
-
-	_footprints.append(footprint)
-	if _footprints.size() > max_footprints:
-		var oldest := _footprints.pop_front()
-		if is_instance_valid(oldest):
-			oldest.queue_free()
+	
+	# Update game manager with position
+	var game_manager = get_node_or_null("/root/Main/GameManager")
+	if game_manager:
+		game_manager.update_player_position(global_position)
