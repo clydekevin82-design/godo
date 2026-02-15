@@ -71,6 +71,6 @@ func _track_footprints(delta: float, move_dir: Vector3) -> void:
 
 	_footprints.append(footprint)
 	if _footprints.size() > max_footprints:
-		var oldest: Node3D = _footprints.pop_front() as Node3D
+		var oldest := _footprints.pop_front()
 		if is_instance_valid(oldest):
 			oldest.queue_free()
