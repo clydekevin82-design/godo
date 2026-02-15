@@ -1,0 +1,6 @@
+63f7b34db8d8cdea90c76aacccf841ec
+::res://::1771182154
+::res://scenes/::1771182117
+Main.tscn::PackedScene::4157646956248507471::1771182117::0::1::::<><><>0<>0<><>::res://scripts/first_person_controller.gd
+::res://scripts/::1771182117
+first_person_controller.gd::GDScript::756274486209414864::1771182117::0::1::::<>CharacterBody3D<><>0<>0<><>::
