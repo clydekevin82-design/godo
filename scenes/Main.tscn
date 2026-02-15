@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/tower.gd" id="5_tower"]
 [ext_resource type="Script" path="res://scripts/puzzle_ui.gd" id="6_puzzle"]
 [ext_resource type="Script" path="res://scripts/audio_controller.gd" id="7_audio"]
+[ext_resource type="Script" path="res://scripts/terrain_generator.gd" id="8_terrain"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_dark"]
 sky_top_color = Color(0.08, 0.1, 0.15, 1)
@@ -236,7 +237,7 @@ directional_shadow_fade_start = 1.0
 directional_shadow_max_distance = 200.0
 
 [node name="TerrainGenerator" type="Node3D" parent="."]
-script = preload("res://scripts/terrain_generator.gd")
+script = ExtResource("8_terrain")
 terrain_size = 100
 terrain_height = 15.0
 tree_density = 0.03
