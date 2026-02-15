@@ -11,6 +11,17 @@ extends CharacterBody3D
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	add_to_group("player")
+	
+	# Position on terrain
+	await get_tree().create_timer(0.6).timeout
+	_position_on_terrain()
+
+func _position_on_terrain() -> void:
+	var terrain = get_node_or_null("/root/Main/TerrainGenerator")
+	if terrain and terrain.has_method("get_terrain_height_at"):
+		var current_pos = global_position
+		var terrain_height = terrain.get_terrain_height_at(current_pos.x, current_pos.z)
+		global_position.y = terrain_height + 2.0
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:

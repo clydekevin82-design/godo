@@ -41,8 +41,8 @@ func _generate_terrain() -> void:
 	var vertices := []
 	for z in range(terrain_size + 1):
 		for x in range(terrain_size + 1):
-			var world_x = x - terrain_size / 2
-			var world_z = z - terrain_size / 2
+			var world_x = x - terrain_size / 2.0
+			var world_z = z - terrain_size / 2.0
 			var height = noise.get_noise_2d(world_x, world_z) * terrain_height
 			
 			# Add some minecraft-like stepping
